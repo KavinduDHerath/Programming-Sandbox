@@ -15,9 +15,7 @@ print(type(x))
 x = int(input('Enter a number: '))
 print(type(x))
 
-Converting numbers to Strings
+#Converting numbers to Strings
 y = 10
 print(y)
 print('The number is ' + str(y))
-
-
