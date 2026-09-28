@@ -1,41 +1,42 @@
-name: CI Code Gatekeeper
+name: CI Code Gatekeeper & Auto-Fixer
 
-# run every time when I push to the repository
 on:
   push:
     branches: [ "main", "master" ]
-  pull_request:
-    branches: [ "main", "master" ]
+
+# Giving the permission to the robot to write code and create Pull Requests
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
-  syntax-and-lint-check:
-    name: Code Quality Checks
+  auto-fix-and-review:
+    name: Auto-Fix Code
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Download code into the virtual server
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # 2. Setup PHP and scan the /PHP Programs folder
-      - name: Setup PHP Environment
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
-          
-      - name: Scan PHP Syntax
-        # Finds every .php file and checks it for syntax errors
-        run: find . -type f -name '*.php' -exec php -l {} \;
-
-      # 3. Setup Python and scan the /Python Programs folder
       - name: Setup Python Environment
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-          
-      - name: Install Python Linter (Flake8)
-        run: pip install flake8
-        
-      - name: Scan Python Syntax
-        # Checks for critical Python bugs like undefined variables or syntax errors
-        run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      # Install 'black' (Python auto-formatter)
+      - name: Install Auto-Fixer
+        run: pip install black
+
+      # Automatically fix formatting and syntax issues
+      - name: Run Auto-Fixer
+        run: black . 
+
+      # If the robot changed anything, bundles the changes into a Pull Request to approve
+      - name: Create Pull Request with Fixes
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "style: automated code fixes"
+          title: "🔧 CI Gatekeeper: Code Fixes Suggested"
+          body: "The CI Gatekeeper found some issues and automatically fixed them. Please review the changes and click Merge to approve!"
+          branch: "automated-fixes"
