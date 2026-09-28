@@ -5,4 +5,4 @@ def sqr(n):
 
 
 print(sqr(5))
-print(sqr(n = 10))
+print(sqr(n=10))
